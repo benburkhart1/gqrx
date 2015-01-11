@@ -79,7 +79,6 @@ public:
     void setAgc(bool enabled);
     bool agc();
 
-    void setFreqCorr(double corr);
     double freqCorr();
 
     void setIqSwap(bool reversed);
@@ -110,6 +109,9 @@ signals:
     void iqBalanceChanged(bool enabled);
     void ignoreLimitsChanged(bool ignore);
     void antennaSelected(QString antenna);
+
+public slots:
+    void setFreqCorr(double corr);	
 
 private slots:
     void on_lnbSpinBox_valueChanged(double value);

@@ -28,6 +28,7 @@ RemoteControl::RemoteControl(QObject *parent) :
     QObject(parent)
 {
 
+    rc_freq_correction = 0;
     rc_freq = 0;
     rc_filter_offset = 0;
     bw_half = 740e3;
@@ -70,6 +71,7 @@ void RemoteControl::readSettings(QSettings *settings)
 {
     bool conv_ok;
 
+    rc_freq_correction = settings->value("input/corr_freq", 0).toDouble(&conv_ok);
     rc_freq = settings->value("input/frequency", 144500000).toLongLong(&conv_ok);
     rc_filter_offset = settings->value("receiver/offset", 0).toInt(&conv_ok);
 
@@ -158,6 +160,7 @@ void RemoteControl::startRead()
     char    buffer[1024] = {0};
     int     bytes_read;
     qint64  freq;
+    double  freq_correction;
 
 
     bytes_read = rc_socket->readLine(buffer, 1024);
@@ -170,6 +173,20 @@ void RemoteControl::startRead()
         if (sscanf(buffer,"F %lld\n", &freq) == 1)
         {
             setNewRemoteFreq(freq);
+            rc_socket->write("RPRT 0\n");
+        }
+        else
+        {
+            rc_socket->write("RPRT 1\n");
+        }
+    }
+    else if (buffer[0] == 'P')
+    {
+        // set frequency
+        if (sscanf(buffer,"P %lf\n", &freq_correction) == 1)
+        {
+            setNewPPM(freq_correction);
+						emit newPPM(freq_correction);
             rc_socket->write("RPRT 0\n");
         }
         else
@@ -215,6 +232,10 @@ void RemoteControl::startRead()
     {
         rc_socket->write(QString("%1\n").arg(intToModeStr(rc_mode)).toLatin1());
     }
+    else if (buffer[0] == 'p')
+    {
+        rc_socket->write(QString("%1\n").arg(rc_freq_correction).toLatin1());
+    }
 
 
     // Gpredict / Gqrx specific commands:
@@ -254,6 +275,11 @@ void RemoteControl::startRead()
 void RemoteControl::setNewFrequency(qint64 freq)
 {
     rc_freq = freq;
+}
+
+void RemoteControl::setNewPPM(double ppm)
+{
+    rc_freq_correction = ppm;
 }
 
 /*! \brief Slot called when the filter offset is changed. */

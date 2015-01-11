@@ -81,12 +81,14 @@ public:
 
 public slots:
     void setNewFrequency(qint64 freq);
+    void setNewPPM(double ppm);
     void setFilterOffset(qint64 freq);
     void setBandwidth(qint64 bw);
     void setSignalLevel(float level);
     void setMode(int mode);
 
 signals:
+    void newPPM(double ppm);
     void newFrequency(qint64 freq);
     void newFilterOffset(qint64 offset);
     void newMode(int mode);
@@ -105,6 +107,7 @@ private:
     QStringList rc_allowed_hosts;  /*!< Hosts where we accept connection from. */
     int         rc_port;           /*!< The port we are listening on. */
     
+    double			rc_freq_correction;
     qint64      rc_freq;
     qint64      rc_filter_offset;
     qint64      bw_half;
